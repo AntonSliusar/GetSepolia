@@ -52,6 +52,11 @@ func main() {
 		log.Fatalf("Failed to set reCAPTCHA response: %v", err)
 	}
 
+	err = browser.ClickStartMiningButton(ctx)
+	if err != nil {
+		log.Fatalf("Failed to click Start Mining button: %v", err)
+	}
+
 	log.Println("Successfully opened the browser and navigated to the target URL. Waiting for 30 seconds to observe...")
 	time.Sleep(300 * time.Second) // Зачекаємо 30 секунд, щоб візуально переконатись
 	log.Println("Closing browser.")	

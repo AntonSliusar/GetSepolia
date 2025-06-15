@@ -99,6 +99,22 @@ func SetRecaptchaResponse(ctx context.Context, token string) error {
 	return err
 }
 
+func ClickStartMiningButton(ctx context.Context) error {
+	selector := `button.start-action` // CSS-селектор для кнопки
+
+	log.Println("Attempting to click 'Start Mining' button...")
+	err := chromedp.Run(ctx,
+		chromedp.WaitVisible(selector, chromedp.ByQuery), // Чекаємо, доки кнопка стане видимою
+		chromedp.Click(selector, chromedp.ByQuery),       // Натискаємо кнопку
+		chromedp.Sleep(3*time.Second),                    // Даємо час на обробку кліку та можливе завантаження
+	)
+	if err != nil {
+		log.Printf("Failed to click 'Start Mining' button: %v", err)
+	} else {
+		log.Println("Successfully clicked 'Start Mining' button.")
+	}
+	return err
+}
 
 
 
