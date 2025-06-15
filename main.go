@@ -2,6 +2,7 @@ package main
 
 import (
 	"GETSEPOLIA/internal/browser"
+	"GETSEPOLIA/internal/captcha"
 	"log"
 	"time"
 )
@@ -23,7 +24,9 @@ func main() {
 	// hardcodedRecaptchaSiteKey := "6Leg_psiAAAAAHlE_PSnJuYLQDXbrnBw6G2l_vvu"
 
 // Створюємо контекст браузера
-	TestProxyAddress := "http://198.23.239.134:6540"
+	TestProxyAddress :=  ""//"http://198.23.239.134:6540"
+	TestETHAddress := "0x0079ea086ba71b8dbbb341033458a3a38eecb42b" // Приклад адреси
+
 
 	ctx, cancel := browser.NewBrowserContext(TestProxyAddress)
 	defer cancel() // Забезпечуємо закриття контексту при завершенні main
@@ -33,9 +36,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to navigate to %s: %v", TargetURL, err)
 	}
+	
+	err = browser.EnterETHAddress(ctx, TestETHAddress)
+	if err != nil {
+		log.Fatalf("Failed to enter ETH address: %v", err)
+	}
+
+	recaptchaToken, err := captcha.SolveRecaptcha() // Тепер викликаємо SolveRecaptcha
+	if err != nil {
+		log.Fatalf("Failed to solve reCAPTCHA: %v", err)
+	}
+
+	err = browser.SetRecaptchaResponse(ctx, recaptchaToken) // Тепер викликаємо SetRecaptchaResponse
+	if err != nil {
+		log.Fatalf("Failed to set reCAPTCHA response: %v", err)
+	}
 
 	log.Println("Successfully opened the browser and navigated to the target URL. Waiting for 30 seconds to observe...")
-	time.Sleep(30 * time.Second) // Зачекаємо 30 секунд, щоб візуально переконатись
+	time.Sleep(300 * time.Second) // Зачекаємо 30 секунд, щоб візуально переконатись
 	log.Println("Closing browser.")	
 	
 }

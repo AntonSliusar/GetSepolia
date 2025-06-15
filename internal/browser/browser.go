@@ -2,7 +2,9 @@ package browser
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/chromedp/chromedp"
 	// Using runner for a more basic setup
@@ -50,6 +52,52 @@ func NavigateToURL(ctx context.Context, url string) error {
 	return err
 }
 
+func EnterETHAddress(ctx context.Context, ethAddress string) error {
+	time.Sleep(2 * time.Second) 
+
+	placeholderText := "Please enter ETH address or ENS name" // Точний текст placeholder'а
+	selector := fmt.Sprintf(`input[placeholder="%s"]`, placeholderText) // CSS-селектор
+
+	log.Printf("Attempting to enter ETH address into field with placeholder '%s'", placeholderText)
+	err := chromedp.Run(ctx,
+		chromedp.WaitVisible(selector, chromedp.ByQuery), // Чекаємо, доки поле стане видимим
+		chromedp.Clear(selector, chromedp.ByQuery),      // Очищаємо поле
+		chromedp.SendKeys(selector, ethAddress, chromedp.ByQuery), // Вводимо адресу
+		chromedp.Sleep(1*time.Second), // Невелика затримка, щоб переконатися, що JS обробив введення
+	)
+	if err != nil {
+		log.Printf("Failed to enter ETH address '%s' into field with placeholder '%s': %v", ethAddress, placeholderText, err)
+	} else {
+		log.Printf("Successfully entered ETH address '%s' into field with placeholder '%s'.", ethAddress, placeholderText)
+	}
+	return err
+}
+
+func SetRecaptchaResponse(ctx context.Context, token string) error {
+	log.Println("Setting reCAPTCHA response token...")
+	selector := `textarea[name="g-recaptcha-response"]`
+
+	err := chromedp.Run(ctx,
+		chromedp.Evaluate(fmt.Sprintf(`
+            var el = document.querySelector('%s');
+            if (el) {
+                el.value = '%s';
+                el.dispatchEvent(new Event('change', { bubbles: true })); // Імітуємо подію change
+                el.dispatchEvent(new Event('input', { bubbles: true }));  // Імітуємо подію input
+                console.log('reCAPTCHA token set and events dispatched.'); // Для дебагу в консолі браузера
+            } else {
+                console.error('reCAPTCHA textarea not found by selector: %s');
+            }
+        `, selector, token, selector), nil),
+		chromedp.Sleep(2*time.Second), // Збільшимо затримку трохи
+	)
+	if err != nil {
+		log.Printf("Failed to set reCAPTCHA response token: %v", err)
+	} else {
+		log.Println("Successfully set reCAPTCHA response token and dispatched events.")
+	}
+	return err
+}
 
 
 
